@@ -12,6 +12,16 @@ export default defineConfig({
 	resolve: {
 		alias: {
 			"@": path.resolve(__dirname, "./src"),
+			"@mocks": path.resolve(__dirname, "./src/test/mocks"),
+			"@hass-connect-fake/mocks": path.resolve(__dirname, "./src/test/mocks"),
+			"@mocks/mockConnection": path.resolve(
+				__dirname,
+				"./src/test/mocks/mockConnection.ts",
+			),
+			"@hass-connect-fake/mocks/mockConnection": path.resolve(
+				__dirname,
+				"./src/test/mocks/mockConnection.ts",
+			),
 		},
 	},
 });

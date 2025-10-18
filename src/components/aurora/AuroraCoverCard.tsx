@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import { useCallback } from "react";
 import { useEntity, useService, type EntityName } from "@hakit/core";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,8 +20,8 @@ export function AuroraCover({
 			toast.loading("Opening…", { id: entityId });
 			await cover.openCover({ target: entityId });
 			toast.success("Opening", { id: entityId });
-		} catch (e: any) {
-			toast.error(e?.message ?? "Failed", { id: entityId });
+		} catch (e: unknown) {
+			toast.error(e instanceof Error ? e.message : "Failed", { id: entityId });
 		}
 	}, [cover, entityId]);
 	const close = useCallback(async () => {
@@ -29,25 +29,23 @@ export function AuroraCover({
 			toast.loading("Closing…", { id: entityId });
 			await cover.closeCover({ target: entityId });
 			toast.success("Closing", { id: entityId });
-		} catch (e: any) {
-			toast.error(e?.message ?? "Failed", { id: entityId });
+		} catch (e: unknown) {
+			toast.error(e instanceof Error ? e.message : "Failed", { id: entityId });
 		}
 	}, [cover, entityId]);
 	const stop = useCallback(async () => {
 		try {
 			await cover.stopCover({ target: entityId });
 			toast.success("Stopped", { id: entityId });
-		} catch (e: any) {
-			toast.error(e?.message ?? "Failed", { id: entityId });
+		} catch (e: unknown) {
+			toast.error(e instanceof Error ? e.message : "Failed", { id: entityId });
 		}
 	}, [cover, entityId]);
 
 	const pos = entity.attributes.current_position as number | undefined;
 
 	return (
-		<Card
-			className={`backdrop-blur-md bg-white/10 border border-white/20 hover:bg-white/15 transition-all duration-300 ${className || ""}`}
-		>
+		<Card className={`animate-fade-pop ${className ?? ""}`}>
 			<CardHeader className="pb-3">
 				<CardTitle className="text-white text-base font-semibold">
 					{entity.attributes.friendly_name || "Cover"}

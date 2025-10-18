@@ -19,9 +19,7 @@ export function AuroraSidebarCard({
 	className,
 }: Props) {
 	return (
-		<Card
-			className={`backdrop-blur-md bg-white/10 border border-white/20 ${className || ""}`}
-		>
+		<Card className={`${className ?? ""}`}>
 			<CardHeader className="pb-3">
 				<CardTitle className="text-white text-base font-semibold">
 					{title}

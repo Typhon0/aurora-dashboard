@@ -1,56 +1,44 @@
-// src/components/aurora/AuroraTriggerCard.tsx
-import React, { useCallback } from "react";
-import { useService } from "@hakit/core";
+// src/components/aurora/AuroraTimerCard.tsx
+import { useMemo } from "react";
+import { useEntity, type EntityName } from "@hakit/core";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 
 interface Props {
-	domain: "script" | "scene" | "button";
-	target: string;
-	title?: string;
-	className?: string;
+  entityId: EntityName;
+  className?: string;
 }
 
-export function AuroraTriggerCard({
-	domain,
-	target,
-	title = "Trigger",
-	className,
-}: Props) {
-	const svc = useService(domain as any);
+export function AuroraTimerCard({ entityId, className }: Props) {
+  const entity = useEntity(entityId);
 
-	const run = useCallback(async () => {
-		try {
-			toast.loading("Running…", { id: target });
-			if (domain === "script") await (svc as any).turnOn({ target });
-			else if (domain === "scene")
-				(await (svc as any).turnOn?.({ target })) ??
-					(svc as any).activate?.({ target });
-			else await (svc as any).press({ target });
-			toast.success("Done", { id: target });
-		} catch (e: any) {
-			toast.error(e?.message ?? "Failed", { id: target });
-		}
-	}, [svc, domain, target]);
+  // Expect remaining seconds in attributes.remaining
+  const remaining = Number(entity.attributes.remaining ?? 0);
+  const formatted = useMemo(() => {
+    const sec = Math.max(0, remaining);
+    const m = Math.floor(sec / 60)
+      .toString()
+      .padStart(2, "0");
+    const s = Math.floor(sec % 60)
+      .toString()
+      .padStart(2, "0");
+    return `${m}:${s}`;
+  }, [remaining]);
 
-	return (
-		<Card
-			className={`backdrop-blur-md bg-white/10 border border-white/20 hover:bg-white/15 transition-all duration-300 ${className || ""}`}
-		>
-			<CardHeader className="pb-3">
-				<CardTitle className="text-white text-base font-semibold">
-					{title}
-				</CardTitle>
-			</CardHeader>
-			<CardContent className="p-5 pt-0">
-				<Button
-					onClick={run}
-					className="w-full bg-white/10 hover:bg-white/20 border border-white/20"
-				>
-					Run
-				</Button>
-			</CardContent>
-		</Card>
-	);
+  return (
+    <Card className={`animate-fade-pop ${className ?? ""}`}>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-white text-base font-semibold">
+          {entity.attributes.friendly_name || "Timer"}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-5 pt-0">
+        <div className="text-3xl font-bold text-white tabular-nums tracking-tight">
+          {formatted}
+        </div>
+        <div className="text-xs text-white/60 mt-2">
+          {entity.state === "active" ? "Counting down" : entity.state}
+        </div>
+      </CardContent>
+    </Card>
+  );
 }

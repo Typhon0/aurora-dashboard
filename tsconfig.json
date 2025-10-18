@@ -7,7 +7,9 @@
 	"compilerOptions": {
 		"baseUrl": ".",
 		"paths": {
-			"@/*": ["./src/*"]
+			"@/*": ["./src/*"],
+			"@mocks/*": ["./src/test/mocks/*"],
+			"@hass-connect-fake/mocks/*": ["./src/test/mocks/*"]
 		}
 	}
 }

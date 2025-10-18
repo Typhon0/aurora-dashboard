@@ -1,45 +1,47 @@
 // src/components/aurora/AuroraEntitiesCard.tsx
-import React from "react";
-import { useEntity, type EntityName } from "@hakit/core";
+import type { EntityName } from "@hakit/core";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
+export interface AuroraEntityLike {
+	id: EntityName | string;
+	state: unknown;
+	attributes: { friendly_name?: string; [key: string]: unknown };
+}
+
 interface Props {
-	entityIds: EntityName[];
+	entities: AuroraEntityLike[];
 	title?: string;
 	className?: string;
+	emptyMessage?: string;
 }
 
 export function AuroraEntitiesCard({
-	entityIds,
+	entities,
 	title = "Entities",
 	className,
+	emptyMessage = "No entities",
 }: Props) {
 	return (
-		<Card
-			className={`backdrop-blur-md bg-white/10 border border-white/20 hover:bg-white/15 transition-all duration-300 ${className || ""}`}
-		>
+		<Card className={`animate-fade-pop ${className ?? ""}`}>
 			<CardHeader className="pb-3">
-				<CardTitle className="text-white text-base font-semibold">
-					{title}
-				</CardTitle>
+				<CardTitle className="text-white text-base font-semibold">{title}</CardTitle>
 			</CardHeader>
 			<CardContent className="p-5 pt-0">
-				<ul className="divide-y divide-white/10">
-					{entityIds.map((id) => {
-						const e = useEntity(id);
-						return (
+				{entities.length === 0 ? (
+					<div className="text-xs text-white/40 italic py-2">{emptyMessage}</div>
+				) : (
+					<ul className="divide-y divide-white/10">
+						{entities.map((item) => (
 							<li
-								key={id}
+								key={item.id}
 								className="py-2 flex items-center justify-between text-white/80"
 							>
-								<span className="truncate">
-									{e.attributes.friendly_name || id}
-								</span>
-								<span className="text-white/60">{String(e.state ?? "--")}</span>
+								<span className="truncate">{item.attributes.friendly_name || item.id}</span>
+								<span className="text-white/60">{String(item.state ?? "--")}</span>
 							</li>
-						);
-					})}
-				</ul>
+						))}
+					</ul>
+				)}
 			</CardContent>
 		</Card>
 	);

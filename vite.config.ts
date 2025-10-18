@@ -4,6 +4,8 @@ import tailwindcss from "@tailwindcss/vite";
 import { visualizer } from "rollup-plugin-visualizer";
 import path from "path";
 
+const isDemo = process.env.VITE_DEMO === "1";
+
 export default defineConfig({
 	plugins: [
 		react(),
@@ -25,6 +27,14 @@ export default defineConfig({
 			"@/stores": path.resolve(__dirname, "./src/stores"),
 			"@/types": path.resolve(__dirname, "./src/types"),
 			"@/lib": path.resolve(__dirname, "./src/lib"),
+			...(isDemo
+				? {
+						"@hakit/core": path.resolve(
+							__dirname,
+							"./ha-component-kit/hass-connect-fake/index.tsx",
+						),
+					}
+				: {}),
 		},
 	},
 
@@ -72,11 +82,5 @@ export default defineConfig({
 
 	define: {
 		global: "globalThis",
-	},
-	// Configuration de test
-	test: {
-		globals: true,
-		environment: "jsdom",
-		setupFiles: ["./src/test/setup.ts"],
 	},
 });

@@ -12,6 +12,7 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { ControlToggle } from "@/components/shared";
 import { Lightbulb, Palette } from "lucide-react";
 import { toast } from "sonner";
 
@@ -121,7 +122,7 @@ export const AuroraLightCard: React.FC<Props> = ({
 									<Palette className="w-4 h-4" />
 								</Button>
 							</DialogTrigger>
-							<DialogContent className="backdrop-blur-md bg-white/10 border border-white/20">
+							<DialogContent className="aurora-glass">
 								<DialogHeader>
 									<DialogTitle className="text-white">Colors</DialogTitle>
 								</DialogHeader>
@@ -144,12 +145,13 @@ export const AuroraLightCard: React.FC<Props> = ({
 							</DialogContent>
 						</Dialog>
 					)}
-					<Button
-						onClick={toggle}
-						className="border border-white/20 bg-white/10 hover:bg-white/20"
-					>
-						{isOn ? "Off" : "On"}
-					</Button>
+					<ControlToggle
+						checked={isOn}
+						vertical={false}
+						thickness={42}
+						onChange={() => toggle()}
+						className="w-28 h-10"
+					/>
 				</div>
 			}
 		>

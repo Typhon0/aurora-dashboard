@@ -1,8 +1,8 @@
 // src/components/aurora/AuroraFanCard.tsx
-import React, { useCallback, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useEntity, useService, type EntityName } from "@hakit/core";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { ControlToggle } from "@/components/shared";
 import { Slider } from "@/components/ui/slider";
 import { Wind } from "lucide-react";
 import { toast } from "sonner";
@@ -27,14 +27,23 @@ export function AuroraFanCard({ entityId, className }: Props) {
 			toast.loading(isOn ? "Turning off…" : "Turning on…", { id: entityId });
 			await fan.toggle({ target: entityId });
 			toast.success(isOn ? "Off" : "On", { id: entityId });
-		} catch (e: any) {
-			toast.error(e?.message ?? "Failed", { id: entityId });
+		} catch (e: unknown) {
+			const msg = (() => {
+				if (e instanceof Error) return e.message;
+				if (typeof e === "object" && e && "message" in e) {
+					const m = (e as { message?: unknown }).message;
+					return typeof m === "string" ? m : "Failed";
+				}
+				return "Failed";
+			})();
+			toast.error(msg, { id: entityId });
 		}
 	}, [fan, entityId, isOn]);
 
 	const setPct = useCallback(
 		async (value: number[]) => {
-			const pct = Math.max(0, Math.min(100, value));
+			const raw = value?.[0] ?? 0;
+			const pct = Math.max(0, Math.min(100, raw));
 			try {
 				if (pct === 0) await fan.turnOff({ target: entityId });
 				else
@@ -42,17 +51,23 @@ export function AuroraFanCard({ entityId, className }: Props) {
 						target: entityId,
 						serviceData: { percentage: pct },
 					});
-			} catch (e: any) {
-				toast.error(e?.message ?? "Failed", { id: entityId });
+			} catch (e: unknown) {
+				const msg = (() => {
+					if (e instanceof Error) return e.message;
+					if (typeof e === "object" && e && "message" in e) {
+						const m = (e as { message?: unknown }).message;
+						return typeof m === "string" ? m : "Failed";
+					}
+					return "Failed";
+				})();
+				toast.error(msg, { id: entityId });
 			}
 		},
 		[fan, entityId],
 	);
 
 	return (
-		<Card
-			className={`backdrop-blur-md bg-white/10 border border-white/20 hover:bg-white/15 transition-all duration-300 ${className || ""}`}
-		>
+		<Card className={`animate-fade-pop${className ? ` ${className}` : ""}`}>
 			<CardHeader className="flex items-center justify-between pb-3">
 				<div className="flex items-center gap-2">
 					<Wind
@@ -67,12 +82,13 @@ export function AuroraFanCard({ entityId, className }: Props) {
 			<CardContent className="p-5 pt-0 space-y-3">
 				<div className="flex items-center justify-between">
 					<div className="text-2xl font-bold text-white">{perc}%</div>
-					<Button
-						onClick={toggle}
-						className="bg-white/10 hover:bg-white/20 border border-white/20"
-					>
-						{isOn ? "Off" : "On"}
-					</Button>
+					<ControlToggle
+						checked={isOn}
+						vertical={false}
+						thickness={42}
+						onChange={() => toggle()}
+						className="w-28 h-10"
+					/>
 				</div>
 				<Slider
 					value={[perc]}

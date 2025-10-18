@@ -1,5 +1,4 @@
 // src/components/aurora/AuroraWeatherCard.tsx
-import React from "react";
 import { useEntity, type EntityName } from "@hakit/core";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Sun, Cloud, CloudRain, CloudSnow, CloudLightning } from "lucide-react";
@@ -31,9 +30,7 @@ export function AuroraWeatherCard({ entityId, className }: Props) {
 	})();
 
 	return (
-		<Card
-			className={`backdrop-blur-md bg-white/10 border border-white/20 hover:bg-white/15 transition-all duration-300 ${className || ""}`}
-		>
+		<Card className={`animate-fade-pop ${className || ""}`}>
 			<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
 				<CardTitle className="text-white text-base font-semibold">
 					{entity.attributes.friendly_name || "Weather"}

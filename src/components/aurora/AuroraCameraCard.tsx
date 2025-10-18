@@ -1,5 +1,4 @@
 // src/components/aurora/AuroraCameraCard.tsx
-import React from "react";
 import { useEntity, type EntityName } from "@hakit/core";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
@@ -10,14 +9,10 @@ interface Props {
 
 export function AuroraCameraCard({ entityId, className }: Props) {
 	const entity = useEntity(entityId);
-	const image = (entity.attributes as any)?.entity_picture as
-		| string
-		| undefined;
+	const image = (entity.attributes as { entity_picture?: string }).entity_picture;
 
 	return (
-		<Card
-			className={`backdrop-blur-md bg-white/10 border border-white/20 hover:bg-white/15 transition-all duration-300 ${className || ""}`}
-		>
+		<Card className={`animate-fade-pop ${className ?? ""}`}>
 			<CardHeader className="pb-3">
 				<CardTitle className="text-white text-base font-semibold">
 					{entity.attributes.friendly_name || "Camera"}

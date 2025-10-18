@@ -28,9 +28,7 @@ export function AuroraSceneCard({ entityId, title, className }: Props) {
 	}, [scene, entityId]);
 
 	return (
-		<Card
-			className={`backdrop-blur-md bg-white/10 border border-white/20 hover:bg-white/15 transition-all duration-300 ${className || ""}`}
-		>
+		<Card className={`animate-fade-pop ${className ?? ""}`}>
 			<CardHeader className="flex items-center justify-between pb-3">
 				<div className="flex items-center gap-2">
 					<Sparkles className="w-5 h-5 text-purple-300" />

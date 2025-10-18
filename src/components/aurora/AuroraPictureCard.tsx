@@ -15,9 +15,7 @@ export function AuroraPictureCard({ entityId, title, className }: Props) {
 		| undefined;
 
 	return (
-		<Card
-			className={`backdrop-blur-md bg-white/10 border border-white/20 hover:bg-white/15 transition-all duration-300 ${className || ""}`}
-		>
+		<Card className={`animate-fade-pop ${className ?? ""}`}>
 			{(title || entity.attributes.friendly_name) && (
 				<CardHeader className="pb-3">
 					<CardTitle className="text-white text-base font-semibold">

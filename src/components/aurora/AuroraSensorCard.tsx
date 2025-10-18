@@ -41,9 +41,7 @@ export function AuroraSensor({
 	}, [entity.state, entity.attributes.unit_of_measurement]);
 
 	return (
-		<Card
-			className={`backdrop-blur-md bg-white/10 border border-white/20 hover:bg-white/15 transition-all duration-300 ${className || ""}`}
-		>
+		<Card className={`animate-fade-pop ${className ?? ""}`}>
 			<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
 				<div className="flex items-center gap-2">
 					{icon}

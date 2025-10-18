@@ -3,6 +3,7 @@ import { useMemo } from "react";
 // UI shadcn
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 // Aurora cards (adaptées shadcn + @hakit/core v5)
 import { AuroraClimateCard } from "@/components/aurora/AuroraClimateCard";
@@ -121,11 +122,14 @@ export function Dashboard() {
 			<div className="relative z-10 p-6 lg:p-8 max-w-7xl mx-auto">
 				{/* Header */}
 				<header className="mb-6">
-					<div className="flex items-center justify-between">
+					<div className="flex items-center justify-between gap-4">
 						<h1 className="text-4xl lg:text-5xl font-black bg-gradient-to-r from-white via-blue-200 to-blue-400 bg-clip-text text-transparent">
 							Aurora Dashboard (from ui-lovelace.yaml)
 						</h1>
-						<Badge className="bg-white/15 text-white/80">shadcn + @hakit</Badge>
+						<div className="flex items-center gap-3">
+							<Badge className="bg-white/15 text-white/80">shadcn + @hakit</Badge>
+							<ThemeToggle />
+						</div>
 					</div>
 					<Separator className="mt-4 bg-white/20" />
 				</header>

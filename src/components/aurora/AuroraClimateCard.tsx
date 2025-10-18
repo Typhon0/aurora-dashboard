@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useEntity, useService, type EntityName } from "@hakit/core";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,9 +28,8 @@ export function AuroraClimateCard({
 
 	const step = useMemo(() => {
 		// Per upstream change: entity step preferred, allow override, fallback 0.5°C or 1°F
-		const entityStep = (entity.attributes as any)?.target_temp_step as
-			| number
-			| undefined;
+		const entityAttrs = entity.attributes as Record<string, unknown>;
+		const entityStep = entityAttrs?.target_temp_step as number | undefined;
 		if (typeof stepOverride === "number") return stepOverride;
 		if (typeof entityStep === "number") return entityStep;
 		return unit === "°F" ? 1 : 0.5;
@@ -47,8 +46,9 @@ export function AuroraClimateCard({
 					serviceData: { temperature: next },
 				});
 				toast.success(`Setpoint ${next}${unit}`, { id: entityId });
-			} catch (e: any) {
-				toast.error(e?.message ?? "Failed", { id: entityId });
+			} catch (e: unknown) {
+				const message = e instanceof Error ? e.message : "Failed";
+				toast.error(message, { id: entityId });
 			}
 		},
 		[climate, entityId, target, unit],
@@ -66,15 +66,14 @@ export function AuroraClimateCard({
 				await climate.turnOff({ target: entityId });
 			}
 			toast.success("Mode updated", { id: entityId });
-		} catch (e: any) {
-			toast.error(e?.message ?? "Failed", { id: entityId });
+		} catch (e: unknown) {
+			const message = e instanceof Error ? e.message : "Failed";
+			toast.error(message, { id: entityId });
 		}
 	}, [climate, entityId, hvac]);
 
 	return (
-		<Card
-			className={`backdrop-blur-md bg-white/10 border border-white/20 hover:bg-white/15 transition-all duration-300 ${className || ""}`}
-		>
+		<Card className={`animate-fade-pop ${className ?? ""}`}>
 			<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
 				<div className="flex items-center gap-2">
 					<Thermometer className="w-5 h-5 text-blue-400" />

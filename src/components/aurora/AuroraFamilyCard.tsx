@@ -33,9 +33,7 @@ function FamilyMemberRow({ id }: { id: EntityName }) {
 
 export function AuroraFamilyCard({ people, className }: Props) {
 	return (
-		<Card
-			className={`backdrop-blur-md bg-white/10 border border-white/20 hover:bg-white/15 transition-all duration-300 ${className || ""}`}
-		>
+		<Card className={`animate-fade-pop ${className ?? ""}`}>
 			<CardHeader className="pb-3">
 				<CardTitle className="text-white text-base font-semibold">
 					Family

@@ -1,57 +1,31 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
-import { cn } from "@/lib/utils";
+import * as React from "react";
+import * as SwitchPrimitive from "@radix-ui/react-switch";
 
-export interface SwitchProps
-	extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "onChange"> {
-	checked?: boolean;
-	defaultChecked?: boolean;
-	onCheckedChange?: (checked: boolean) => void;
+import { cn } from "./utils";
+
+function Switch({
+  className,
+  ...props
+}: React.ComponentProps<typeof SwitchPrimitive.Root>) {
+  return (
+    <SwitchPrimitive.Root
+      data-slot="switch"
+      className={cn(
+        "peer data-[state=checked]:bg-[var(--aurora-accent)] data-[state=unchecked]:bg-switch-background focus-visible:border-ring focus-visible:ring-ring/50 dark:data-[state=unchecked]:bg-input/80 dark:data-[state=checked]:bg-[var(--aurora-accent)] inline-flex h-[1.15rem] w-8 shrink-0 items-center rounded-full border border-transparent transition-all outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:shadow-[0_0_12px_var(--aurora-accent-glow)]",
+        className,
+      )}
+      {...props}
+    >
+      <SwitchPrimitive.Thumb
+        data-slot="switch-thumb"
+        className={cn(
+          "bg-card dark:data-[state=unchecked]:bg-card-foreground dark:data-[state=checked]:bg-primary-foreground pointer-events-none block size-4 rounded-full ring-0 transition-transform data-[state=checked]:translate-x-[calc(100%-2px)] data-[state=unchecked]:translate-x-0",
+        )}
+      />
+    </SwitchPrimitive.Root>
+  );
 }
 
-export const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(
-	(
-		{ checked, defaultChecked, onCheckedChange, disabled, className, ...rest },
-		ref,
-	) => {
-		const [internal, setInternal] = useState<boolean>(defaultChecked ?? false);
-		const isControlled = typeof checked === "boolean";
-		const current = isControlled ? checked : internal;
-
-		const toggle = useCallback(() => {
-			if (disabled) return;
-			const next = !current;
-			if (!isControlled) setInternal(next);
-			onCheckedChange?.(next);
-		}, [current, disabled, isControlled, onCheckedChange]);
-
-		return (
-			<button
-				type="button"
-				role="switch"
-				aria-checked={current}
-				data-state={current ? "checked" : "unchecked"}
-				disabled={disabled}
-				onClick={toggle}
-				ref={ref}
-				className={cn(
-					"inline-flex h-6 w-10 shrink-0 cursor-pointer items-center rounded-full border border-transparent transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
-					current ? "bg-primary" : "bg-muted",
-					className,
-				)}
-				{...rest}
-			>
-				<span
-					className={cn(
-						"pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform",
-						current ? "translate-x-4" : "translate-x-0",
-					)}
-				/>
-			</button>
-		);
-	},
-);
-Switch.displayName = "Switch";
-
-export default Switch;
+export { Switch };

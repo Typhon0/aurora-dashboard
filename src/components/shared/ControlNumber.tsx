@@ -1,8 +1,8 @@
 import type React from "react";
 import { useState, useCallback } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
+import { cn } from "../../lib/utils";
 
 export interface ControlNumberProps {
 	value?: number;

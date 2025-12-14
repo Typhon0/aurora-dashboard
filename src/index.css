@@ -1,171 +1,36 @@
 @import "tailwindcss";
+@import "./styles/globals.css";
 
-/* Global design tokens for shadcn + glass */
-:root {
-	--background: 222 37% 6%;
-	--foreground: 0 0% 98%;
-	--card: 222 42% 9% / 0.65;
-	--card-foreground: 0 0% 98%;
-	--popover: 222 42% 10% / 0.7;
-	--popover-foreground: 0 0% 98%;
-	--border: 220 20% 35% / 0.35;
-	--input: 220 20% 35% / 0.5;
-	--primary: 212 100% 55%;
-	--primary-foreground: 0 0% 100%;
-	--secondary: 220 25% 20% / 0.6;
-	--secondary-foreground: 0 0% 96%;
-	--muted: 220 15% 25% / 0.4;
-	--muted-foreground: 220 15% 70%;
-	--accent: 215 85% 60%;
-	--accent-foreground: 0 0% 100%;
-	--destructive: 0 80% 55%;
-	--destructive-foreground: 0 0% 100%;
-	--ring: 215 90% 60%;
-	--radius: 18px;
-	/* Glass layered tokens */
-	--glass-bg: linear-gradient(
-		135deg,
-		rgba(255, 255, 255, 0.18),
-		rgba(255, 255, 255, 0.06)
-	);
-	--glass-border: rgba(255, 255, 255, 0.28);
-	--glass-border-alt: rgba(255, 255, 255, 0.38);
-	--glass-shadow:
-		0 4px 8px -2px rgba(0, 0, 0, 0.4), 0 8px 24px -6px rgba(0, 0, 0, 0.55);
-	--glass-shadow-hover:
-		0 6px 12px -2px rgba(0, 0, 0, 0.45), 0 14px 28px -8px rgba(0, 0, 0, 0.6);
-	--glass-overlay:
-		radial-gradient(
-			circle at 15% 15%,
-			rgba(255, 255, 255, 0.55),
-			transparent 60%
-		),
-		radial-gradient(
-			circle at 85% 25%,
-			rgba(255, 255, 255, 0.25),
-			transparent 70%
-		),
-		radial-gradient(
-			circle at 50% 100%,
-			rgba(255, 255, 255, 0.15),
-			transparent 70%
-		);
+/* React Grid Layout Styles */
+.react-grid-layout {
+	position: relative;
+	transition: height 200ms ease;
 }
 
-.dark {
-	--background: 222 50% 3%;
-	--foreground: 0 0% 98%;
-	--card: 222 42% 5% / 0.55;
-	--card-foreground: 0 0% 98%;
-	--popover: 222 42% 8% / 0.6;
-	--popover-foreground: 0 0% 98%;
-	--border: 220 25% 32% / 0.35;
-	--input: 220 25% 32% / 0.5;
-	--primary: 212 100% 60%;
-	--primary-foreground: 0 0% 100%;
-	--secondary: 220 30% 18% / 0.55;
-	--secondary-foreground: 0 0% 96%;
-	--muted: 220 20% 25% / 0.35;
-	--muted-foreground: 220 15% 70%;
-	--accent: 215 85% 62%;
-	--accent-foreground: 0 0% 100%;
-	--destructive: 0 80% 50%;
-	--destructive-foreground: 0 0% 100%;
-	--ring: 215 90% 60%;
-	--glass-bg: linear-gradient(
-		135deg,
-		rgba(255, 255, 255, 0.16),
-		rgba(255, 255, 255, 0.04)
-	);
-	--glass-shadow:
-		0 4px 12px -2px rgba(0, 0, 0, 0.55), 0 12px 32px -8px rgba(0, 0, 0, 0.75);
-	--glass-shadow-hover:
-		0 8px 18px -4px rgba(0, 0, 0, 0.6), 0 18px 40px -10px rgba(0, 0, 0, 0.8);
+.react-grid-item {
+	transition: all 200ms ease;
+	transition-property: left, top, transform;
 }
 
-@theme {
-	--color-border: oklch(0.25 0 0);
-	--color-background: oklch(0 0 0);
-	--color-foreground: oklch(1 0 0);
-
-	/* Aurora custom theme variables */
-	--color-aurora-50: oklch(0.97 0.02 240);
-	--color-aurora-500: oklch(0.53 0.17 240);
-	--color-aurora-600: oklch(0.45 0.17 240);
-	--color-aurora-900: oklch(0.15 0.05 240);
-
-	/* Glass effect colors */
-	--color-glass-light: oklch(1 0 0 / 0.1);
-	--color-glass-medium: oklch(1 0 0 / 0.15);
-	--color-glass-heavy: oklch(1 0 0 / 0.2);
+.react-grid-item.cssTransforms {
+	transition-property: transform;
 }
 
-@layer base {
-	* {
-		border-color: var(--color-border);
-	}
-
-	body {
-		@apply bg-black text-white font-sans antialiased;
-	}
+.react-grid-item.resizing {
+	z-index: 100;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
-@layer utilities {
-	/* Reusable glass surface */
-	.surface-glass {
-		background: var(--glass-bg);
-		border: 1px solid var(--glass-border);
-		border-right-color: var(--glass-border-alt);
-		border-bottom-color: var(--glass-border-alt);
-		backdrop-filter: blur(24px) saturate(160%);
-		-webkit-backdrop-filter: blur(24px) saturate(160%);
-		box-shadow: var(--glass-shadow);
-		border-radius: var(--radius);
-		position: relative;
-		transition:
-			background 0.35s ease,
-			box-shadow 0.35s ease,
-			transform 0.35s ease,
-			border-color 0.35s ease;
-	}
-	.surface-glass:hover {
-		box-shadow: var(--glass-shadow-hover);
-	}
-	.surface-glass:active {
-		transform: translateY(2px);
-	}
-	.surface-glass:before {
-		content: "";
-		inset: 0;
-		position: absolute;
-		pointer-events: none;
-		border-radius: inherit;
-		mix-blend-mode: overlay;
-		opacity: 0.55;
-		background: var(--glass-overlay);
-	}
-	.glass-effect {
-		@apply bg-white/10 backdrop-blur-md border border-white/20;
-	}
+.react-grid-item.react-grid-placeholder {
+	background: rgba(255, 255, 255, 0.05);
+	border: 2px dashed rgba(255, 255, 255, 0.2);
+	border-radius: 1.75rem !important;
+	opacity: 0.5;
+	z-index: 2;
+}
 
-	/* aurora-glass deprecated -> use surface-glass */
-
-	/* Subtle entrance animation */
-	.animate-fade-pop {
-		animation: fadePop 0.6s cubic-bezier(0.16, 0.68, 0.48, 1) both;
-	}
-	@keyframes fadePop {
-		0% {
-			opacity: 0;
-			transform: scale(0.92) translateY(8px);
-		}
-		60% {
-			opacity: 1;
-			transform: scale(1.015) translateY(-2px);
-		}
-		100% {
-			opacity: 1;
-			transform: scale(1) translateY(0);
-		}
-	}
+/* Hide standard resize handle if we don't use it or style it later */
+.react-resizable-handle {
+	display: none;
+	/* We disable resizing for now to keep fixed tiles */
 }

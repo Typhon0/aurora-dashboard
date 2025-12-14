@@ -4,10 +4,10 @@ import {
 	Popover,
 	PopoverTrigger,
 	PopoverContent,
-} from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+} from "../ui/popover";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { cn } from "../../lib/utils";
 import { Clock, ChevronsUpDown } from "lucide-react";
 
 export interface ControlTimeRangeValue {

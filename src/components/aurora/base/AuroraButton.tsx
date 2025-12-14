@@ -1,7 +1,7 @@
 import React from "react";
-import { Button, type ButtonProps } from "@/components/ui/button";
-import { auroraButtonVariants, type VariantProps } from "@/lib/aurora-variants";
-import { cn } from "@/lib/utils";
+import { Button, type ButtonProps } from "../../ui/button";
+import { auroraButtonVariants, type VariantProps } from "../../../lib/aurora-variants";
+import { cn } from "../../../lib/utils";
 
 interface AuroraButtonProps
 	extends ButtonProps,

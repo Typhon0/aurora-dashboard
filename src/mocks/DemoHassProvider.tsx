@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useCallback, type ReactNode } from "react";
-import { HassContext } from "@hakit/core";
+import { HassConnect } from "@hakit/core";
 import { useInternalStore } from "@/../ha-component-kit/packages/core/src/HassConnect/HassContext";
 import type { HassEntity, HassEntities } from "home-assistant-js-websocket";
 import { createMockEntities, type MockEntity } from "./mockEntities";
@@ -163,7 +163,7 @@ export const DemoHassProvider: React.FC<DemoHassProviderProps> = ({
 			joinHassUrl: (p: string) => p,
 			callApi: async () => ({ data: null, status: "success" }) as const,
 			windowContext: window,
-		} as unknown as Parameters<typeof HassContext.Provider>[0]["value"]; // align with provider expected shape
+		} as unknown as Parameters<typeof HassConnect.Provider>[0]["value"]; // align with provider expected shape
 	}, [callServiceImpl, store.entities]);
 
 	// Expose global demo API for shim if present
@@ -195,6 +195,6 @@ export const DemoHassProvider: React.FC<DemoHassProviderProps> = ({
 	}, [callServiceImpl]);
 
 	return (
-		<HassContext.Provider value={contextValue}>{children}</HassContext.Provider>
+		<HassConnect.Provider value={contextValue}>{children}</HassConnect.Provider>
 	);
 };

@@ -1,39 +1,35 @@
-// src/components/aurora/AuroraSwitchCard.tsx
-// Placeholder implementation for a Switch entity card (input_boolean / switch domain)
-// Focus: glassmorphic visuals + consistent API; real-time state + service wiring can be enhanced later.
-import { AuroraCard } from "./base/AuroraCard";
+import { Card } from "../ui/card";
 import { useEntity, useService, type EntityName } from "@hakit/core";
 import { useCallback } from "react";
-import { ToggleLeft, ToggleRight } from "lucide-react";
-import { ControlToggle } from "@/components/shared";
+import { Power } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "../../lib/utils";
 
 interface Props {
-	entityId: EntityName; // e.g. 'switch.living_room_lamp' or 'input_boolean.guest_mode'
-	size?: "small" | "medium" | "large";
+	entityId: EntityName;
 	className?: string;
 	titleOverride?: string;
 }
 
 export const AuroraSwitchCard: React.FC<Props> = ({
 	entityId,
-	size = "small",
 	className,
 	titleOverride,
 }) => {
 	const entity = useEntity(entityId);
 	const domain = entityId.split(".")[0];
-	// Pick appropriate service collection based on domain
 	const svc = useService(
 		domain === "input_boolean" ? "inputBoolean" : "switch",
 	);
-	const isOn = entity.state === "on"; // input_boolean uses 'on'/'off' as well
+	const isOn = entity.state === "on";
 
-	const toggle = useCallback(async () => {
+	const toggle = useCallback(async (e: React.MouseEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
 		try {
-			toast.loading(isOn ? "Turning off…" : "Turning on…", { id: entityId });
+			toast.loading(isOn ? "Turning off..." : "Turning on...", { id: entityId, duration: 1000 });
 			await svc.toggle({ target: entityId });
-			toast.success(isOn ? "Turned off" : "Turned on", { id: entityId });
+			toast.success(isOn ? "Turned off" : "Turned on", { id: entityId, duration: 2000 });
 		} catch (e: unknown) {
 			const message = e instanceof Error ? e.message : "Failed";
 			toast.error(message, { id: entityId });
@@ -41,31 +37,55 @@ export const AuroraSwitchCard: React.FC<Props> = ({
 	}, [svc, entityId, isOn]);
 
 	return (
-		<AuroraCard
-			size={size}
-			className={className}
-			state={isOn ? "active" : "default"}
-			title={titleOverride || entity.attributes.friendly_name}
-			icon={
-				isOn ? (
-					<ToggleRight className="w-5 h-5 text-emerald-400" />
-				) : (
-					<ToggleLeft className="w-5 h-5 text-white/60" />
-				)
-			}
-			actions={
-				<ControlToggle
-					checked={isOn}
-					vertical={false}
-					thickness={38}
-					onChange={toggle}
-					className="w-24 h-9"
-				/>
-			}
+		<Card
+			onClick={toggle}
+			className={cn(
+				"group relative flex flex-col justify-between overflow-hidden p-4 cursor-pointer transition-all duration-300",
+				"h-full rounded-[24px]",
+				"bg-zinc-900/40 backdrop-blur-3xl",
+				"ring-1 ring-white/10 ring-inset",
+				"border border-white/5",
+				"shadow-xl shadow-black/20",
+				"hover:bg-zinc-900/50 active:scale-[0.98]",
+				isOn && "shadow-[0_0_30px_-5px_rgba(255,255,255,0.1)]",
+				className
+			)}
 		>
-			<div className="pt-1 px-0 text-sm text-white/70">
-				{isOn ? "Active" : "Inactive"}
+			{/* Ambient Glow Effect */}
+			<div
+				className={cn(
+					"absolute inset-0 opacity-0 transition-opacity duration-500 pointer-events-none",
+					isOn ? "opacity-100" : "group-hover:opacity-20"
+				)}
+				style={{
+					background: "radial-gradient(circle at top left, rgba(255,255,255,0.2), transparent 70%)"
+				}}
+			/>
+
+			<div className="relative z-10 flex items-start justify-between">
+				<div
+					className={cn(
+						"flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300",
+						isOn
+							? "bg-white text-black shadow-lg scale-110"
+							: "bg-white/10 text-white group-hover:bg-white/20"
+					)}
+				>
+					<Power className="w-5 h-5" />
+				</div>
 			</div>
-		</AuroraCard>
+
+			<div className="relative z-10 mt-auto">
+				<h3 className="font-semibold text-white text-[15px] leading-snug line-clamp-2 tracking-wide">
+					{titleOverride || entity.attributes.friendly_name}
+				</h3>
+				<p className={cn(
+					"text-xs font-medium mt-1 transition-colors duration-300",
+					isOn ? "text-white/90" : "text-white/50"
+				)}>
+					{isOn ? "On" : "Off"}
+				</p>
+			</div>
+		</Card>
 	);
 };

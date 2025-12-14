@@ -1,9 +1,9 @@
 import type React from "react";
 import { useState, useMemo, useId, useCallback } from "react";
-import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "../ui/command";
+import { Popover, PopoverTrigger, PopoverContent } from "../ui/popover";
+import { Button } from "../ui/button";
+import { cn } from "../../lib/utils";
 import { Check, ChevronsUpDown, X } from "lucide-react";
 
 export interface ComboboxOption<T extends string = string> {

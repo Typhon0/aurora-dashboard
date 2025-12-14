@@ -1,364 +1,404 @@
-import { useMemo } from "react";
+import {
+  useMemo,
+  useState,
+  useCallback,
+  useEffect,
+} from "react";
+import { useHass } from "@hakit/core";
+import { ThemeToggle } from "../components/ui/theme-toggle";
+import { Button } from "../components/ui/button";
+import { Pencil, Check, CarFront, X } from "lucide-react";
+import { cn } from "../lib/utils";
 
-// UI shadcn
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+import GridLayout, { useContainerWidth } from "react-grid-layout";
+import "react-grid-layout/css/styles.css";
+import "react-resizable/css/styles.css";
 
-// Aurora cards (adaptées shadcn + @hakit/core v5)
-import { AuroraClimateCard } from "@/components/aurora/AuroraClimateCard";
-import { AuroraWeatherCard } from "@/components/aurora/AuroraWeatherCard";
-import { AuroraMediaPlayerCard } from "@/components/aurora/AuroraMediaPlayerCard";
-import { AuroraLightCard } from "@/components/aurora/AuroraLightCard";
-import { AuroraSensor } from "@/components/aurora/AuroraSensorCard";
-import { AuroraButtonCard } from "@/components/aurora/AuroraButtonCard";
-import { AuroraTriggerCard } from "@/components/aurora/AuroraTriggerCard";
-import { AuroraEntitiesCard } from "@/components/aurora/AuroraEntitiesCard";
-import { AuroraFamilyCard } from "@/components/aurora/AuroraFamilyCard";
-import { AuroraFabCard } from "@/components/aurora/AuroraFabCard";
-import { AuroraFanCard } from "@/components/aurora/AuroraFanCard";
-import { useHass, type EntityName } from "@hakit/core";
+// Layout Data & Components
+import { initialLayout, type RGLItem } from "./dashboard-layout";
+import { CardRenderer } from "../components/aurora/CardRenderer";
+import { AuroraFabCard } from "../components/aurora/AuroraFabCard";
+import { AuroraCarView } from "../components/aurora/AuroraCarView";
+import { AnimatePresence } from "motion/react";
 
-// Mapping direct depuis le YAML
-const cfg = {
-	sidebarBanner: "sensor.template_sidebar",
-	weather: "weather.maison",
-
-	salon: {
-		light: "light.ampoule_salon",
-		buffet: "switch.lumiere_buffet_socket_1",
-		climate: "climate.smart_thermostat_salon",
-		tv: "media_player.sejour",
-	},
-
-	cuisine: {
-		light: "light.ampoule_lampadaire_salon",
-		temp: "sensor.thermo_cuisine_temperature",
-		media: "media_player.cuisine",
-	},
-
-	bureau: {
-		strip: "light.led_strip_bureau",
-		lamp: "light.lampe_bureau",
-		pc: "sensor.pc_loic_sessionstate",
-		climate: "climate.smart_radiator_thermostat_bureau",
-	},
-
-	chambre: {
-		bedside: "light.mibedsidelamp2",
-		temp: "sensor.thermo_sdb_temperature",
-		climate: "climate.forceclima",
-		fan: "fan.dyson_purifier_hot_cool",
-	},
-
-	media: {
-		selector: "select.conditional_media",
-		jellyfin: "sensor.jellyfin_playing",
-		salon: "media_player.sejour",
-		cuisine: "media_player.cuisine",
-		spotify: "media_player.spotify",
-		kok: "media_player.kok",
-		tv: "media_player.samsungtv_qn90a",
-	},
-
-	buanderie: {
-		spot: "light.spot_buanderie",
-		trv: "climate.trv_buanderie",
-		boilerHeat: "climate.vitrocrossal_300_cu3a_heating",
-		water: "water_heater.vitrocrossal_300_cu3a_domestic_hot_water",
-	},
-
-	maison: {
-		loic: "person.loic",
-		loicLast: "sensor.loic_last_changed",
-		emma: "person.emma",
-		emmaLast: "sensor.emma_last_changed",
-		chargerStatus: "sensor.wallbox_portal_status_description",
-		chargerPower: "sensor.wallbox_portal_charging_power",
-		chargerPauseResume: "switch.wallbox_portal_pause_resume",
-		arrive: "script.home_arrive",
-		leave: "script.home_leave",
-	},
-
-
-};
+const STORAGE_KEY = "aurora-dashboard-layout-v4-granular";
 
 export function Dashboard() {
-	// Safe existence check without throwing. We can't call hooks conditionally,
-	// so we rely on the hass helper (getEntity) if present, else a cached map.
-	const hass = useHass() as any;
-	const exists = (id?: string) => {
-		if (!id) return false;
-		// Try direct getter first
-		if (hass?.getEntity) {
-			const got = hass.getEntity(id);
-			if (got) return true;
-		}
-		// Bulk containers (naming can vary across versions)
-		const containers = [
-			hass?.getAllEntities?.(),
-			hass?.entities,
-			hass?.states,
-			hass?.__ENTITIES__,
-		];
-		for (const c of containers) {
-			if (c && typeof c === "object" && id in c) return true;
-		}
-		return false;
-	};
-	// Famille pour la section "Maison"
-	const family = useMemo(
-		() => [cfg.maison.loic, cfg.maison.emma].filter(Boolean),
-		[],
-	);
+  const hass = useHass() as any;
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [layoutItems, setLayoutItems] = useState<RGLItem[]>([]);
+  const [view, setView] = useState<"dashboard" | "car">(
+    "dashboard",
+  );
 
-	return (
-		<div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white">
-			{/* BG aurora */}
-			<div className="fixed inset-0 bg-gradient-to-br from-blue-900/10 via-transparent to-purple-900/10 pointer-events-none" />
-			<div className="fixed top-20 left-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-			<div className="fixed bottom-20 right-20 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+  // Check entity existence
+  const exists = useCallback(
+    (id?: string) => {
+      if (!id) return true;
+      if (hass?.getEntity) return !!hass.getEntity(id);
+      const containers = [
+        hass?.getAllEntities?.(),
+        hass?.entities,
+        hass?.states,
+        hass?.__ENTITIES__,
+      ];
+      for (const c of containers) {
+        if (c && typeof c === "object" && id in c) return true;
+      }
+      return false;
+    },
+    [hass],
+  );
 
-			<div className="relative z-10 p-6 lg:p-8 max-w-7xl mx-auto">
-				{/* Header */}
-				<header className="mb-6">
-					<div className="flex items-center justify-between gap-4">
-						<h1 className="text-4xl lg:text-5xl font-black bg-gradient-to-r from-white via-blue-200 to-blue-400 bg-clip-text text-transparent">
-							Aurora Dashboard (from ui-lovelace.yaml)
-						</h1>
-						<div className="flex items-center gap-3">
-							<Badge className="bg-white/15 text-white/80">shadcn + @hakit</Badge>
-							<ThemeToggle />
-						</div>
-					</div>
-					<Separator className="mt-4 bg-white/20" />
-				</header>
+  const {
+    width,
+    containerRef,
+    // mounted, // Optional: useful if we want to show loading state
+  } = useContainerWidth();
 
-				{/* Grille principale (mêmes zones que le YAML) */}
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-					{/* SIDEBAR */}
-					<div className="lg:col-span-1 space-y-4">
-						{/* Bannière sidebar (texte/sensor) */}
-						{exists(cfg.sidebarBanner) && (
-							<AuroraSensor entityId={cfg.sidebarBanner as EntityName} />
-						)}
-						{/* Météo */}
-						{exists(cfg.weather) && (
-							<AuroraWeatherCard entityId={cfg.weather as EntityName} />
-						)}
-					</div>
+  // Initialize Items
+  useEffect(() => {
+    if (!hass) return;
+    if (layoutItems.length > 0) return;
 
-					{/* COL 2-5: zones */}
-					<div className="lg:col-span-4 space-y-8">
-						{/* Salon */}
-						<section>
-							<h2 className="text-xl font-semibold mb-3">Salon</h2>
-							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-								{exists(cfg.salon.light) && (
-									<AuroraLightCard entityId={cfg.salon.light as EntityName} />
-								)}
-								{exists(cfg.salon.buffet) && (
-									<AuroraButtonCard entityId={cfg.salon.buffet as EntityName} />
-								)}
-								{exists(cfg.salon.climate) && (
-									<AuroraClimateCard
-										entityId={cfg.salon.climate as EntityName}
-									/>
-								)}
-								{exists(cfg.salon.tv) && (
-									<AuroraMediaPlayerCard
-										entityId={cfg.salon.tv as EntityName}
-									/>
-								)}
-							</div>
-						</section>
+    const savedLayout = localStorage.getItem(STORAGE_KEY);
 
-						{/* Cuisine */}
-						<section>
-							<h2 className="text-xl font-semibold mb-3">Cuisine</h2>
-							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-								{exists(cfg.cuisine.light) && (
-									<AuroraLightCard entityId={cfg.cuisine.light as EntityName} />
-								)}
-								{exists(cfg.cuisine.temp) && (
-									<AuroraSensor entityId={cfg.cuisine.temp as EntityName} />
-								)}
-								{exists(cfg.cuisine.media) && (
-									<AuroraMediaPlayerCard
-										entityId={cfg.cuisine.media as EntityName}
-									/>
-								)}
-							</div>
-						</section>
+    if (savedLayout) {
+      try {
+        const parsed = JSON.parse(savedLayout);
+        const validItems = parsed.filter(
+          (i: RGLItem) =>
+            i.type === "header" ||
+            !i.entityId ||
+            exists(i.entityId),
+        );
+        setLayoutItems(validItems);
+        return;
+      } catch (e) {
+        console.error("Failed to load saved layout:", e);
+      }
+    }
 
-						{/* Bureau */}
-						<section>
-							<h2 className="text-xl font-semibold mb-3">Bureau</h2>
-							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-								{exists(cfg.bureau.strip) && (
-									<AuroraLightCard entityId={cfg.bureau.strip as EntityName} />
-								)}
-								{exists(cfg.bureau.lamp) && (
-									<AuroraLightCard entityId={cfg.bureau.lamp as EntityName} />
-								)}
-								{exists(cfg.bureau.pc) && (
-									<AuroraSensor entityId={cfg.bureau.pc as EntityName} />
-								)}
-								{exists(cfg.bureau.climate) && (
-									<AuroraClimateCard
-										entityId={cfg.bureau.climate as EntityName}
-									/>
-								)}
-							</div>
-						</section>
+    const validItems = initialLayout.filter(
+      (i) =>
+        i.type === "header" ||
+        !i.entityId ||
+        exists(i.entityId),
+    );
+    setLayoutItems(validItems);
+  }, [hass, exists, layoutItems.length]);
 
-						{/* Chambre */}
-						<section>
-							<h2 className="text-xl font-semibold mb-3">Chambre</h2>
-							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-								{exists(cfg.chambre.bedside) && (
-									<AuroraLightCard
-										entityId={cfg.chambre.bedside as EntityName}
-									/>
-								)}
-								{exists(cfg.chambre.temp) && (
-									<AuroraSensor entityId={cfg.chambre.temp as EntityName} />
-								)}
-								{exists(cfg.chambre.climate) && (
-									<AuroraClimateCard
-										entityId={cfg.chambre.climate as EntityName}
-									/>
-								)}
-								{exists(cfg.chambre.fan) && (
-									<AuroraFanCard entityId={cfg.chambre.fan as EntityName} />
-								)}
-							</div>
-						</section>
+  // Convert to RGL format
+  const layout = useMemo(() => {
+    return layoutItems.map((item) => ({
+      i: item.i,
+      x: item.x,
+      y: item.y,
+      w: item.w,
+      h: item.h,
+      minW: item.minW || 1,
+      minH: item.minH || 1,
+    }));
+  }, [layoutItems]);
 
-						{/* Media */}
-						<section>
-							<h2 className="text-xl font-semibold mb-3">Media</h2>
-							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-								{exists(cfg.media.jellyfin) && (
-									<AuroraSensor entityId={cfg.media.jellyfin as EntityName} />
-								)}
-								{exists(cfg.media.salon) && (
-									<AuroraMediaPlayerCard
-										entityId={cfg.media.salon as EntityName}
-									/>
-								)}
-								{exists(cfg.media.cuisine) && (
-									<AuroraMediaPlayerCard
-										entityId={cfg.media.cuisine as EntityName}
-									/>
-								)}
-								{exists(cfg.media.spotify) && (
-									<AuroraMediaPlayerCard
-										entityId={cfg.media.spotify as EntityName}
-									/>
-								)}
-								{exists(cfg.media.kok) && (
-									<AuroraMediaPlayerCard
-										entityId={cfg.media.kok as EntityName}
-									/>
-								)}
-								{exists(cfg.media.tv) && (
-									<AuroraMediaPlayerCard
-										entityId={cfg.media.tv as EntityName}
-									/>
-								)}
-							</div>
-						</section>
+  // Simple layout change
+  const onLayoutChange = (newLayout: any[]) => {
+    if (!isEditMode) return;
 
-						{/* Buanderie */}
-						<section>
-							<h2 className="text-xl font-semibold mb-3">Buanderie</h2>
-							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-								{exists(cfg.buanderie.spot) && (
-									<AuroraLightCard
-										entityId={cfg.buanderie.spot as EntityName}
-									/>
-								)}
-								{exists(cfg.buanderie.trv) && (
-									<AuroraClimateCard
-										entityId={cfg.buanderie.trv as EntityName}
-									/>
-								)}
-								{exists(cfg.buanderie.boilerHeat) && (
-									<AuroraClimateCard
-										entityId={cfg.buanderie.boilerHeat as EntityName}
-									/>
-								)}
-								{exists(cfg.buanderie.water) && (
-									<AuroraSensor entityId={cfg.buanderie.water as EntityName} />
-								)}
-							</div>
-						</section>
+    const updatedItems = layoutItems.map((item) => {
+      const newPos = newLayout.find((l: any) => l.i === item.i);
+      if (newPos) {
+        return {
+          ...item,
+          x: newPos.x,
+          y: newPos.y,
+          w: newPos.w,
+          h: newPos.h,
+        };
+      }
+      return item;
+    });
 
-						{/* Maison */}
-						<section>
-							<h2 className="text-xl font-semibold mb-3">Maison</h2>
-							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-								<AuroraFamilyCard people={family as EntityName[]} />
-								<AuroraEntitiesCard
-									title="Wallbox"
-									entityIds={[
-										cfg.maison.chargerStatus as EntityName,
-										cfg.maison.chargerPower as EntityName,
-									]}
-								/>
-								<AuroraTriggerCard
-									domain="script"
-									target={cfg.maison.arrive}
-									title="Maison"
-								/>
-								<AuroraTriggerCard
-									domain="script"
-									target={cfg.maison.leave}
-									title="Fermez tout"
-								/>
-							</div>
-						</section>
+    setLayoutItems(updatedItems);
+  };
 
-						{/* Footer */}
-						<section>
-							<h2 className="text-xl font-semibold mb-3">Footer</h2>
-							{/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-								<AuroraEntitiesCard
-									title="NAS"
-									entityIds={[
-										cfg.footer.nasUpdate as EntityName,
-										cfg.footer.nasVol as EntityName,
-										cfg.footer.nasSec as EntityName,
-										cfg.footer.nasDisk as EntityName,
-									]}
-								/>
-								{exists(cfg.footer.updates) && (
-									<AuroraSensor entityId={cfg.footer.updates as EntityName} />
-								)}
-								{exists(cfg.footer.today) && (
-									<AuroraSensor entityId={cfg.footer.today as EntityName} />
-								)}
-								{exists(cfg.footer.lastVacuumEnd) && (
-									<AuroraSensor
-										entityId={cfg.footer.lastVacuumEnd as EntityName}
-									/>
-								)}
-								<AuroraEntitiesCard
-									title="UDM"
-									entityIds={[
-										cfg.footer.udmUpdate as EntityName,
-										cfg.footer.udmInternet as EntityName,
-									]}
-								/>
-							</div> */}
-						</section>
-					</div>
-				</div>
+  // Save layout
+  const saveLayout = () => {
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(layoutItems),
+      );
+      console.log("✅ Layout saved");
+    } catch (e) {
+      console.error("Failed to save layout:", e);
+    }
+  };
 
-				{/* Action flottante (optionnelle) */}
-				<AuroraFabCard domain="script" target={cfg.maison.arrive} />
-			</div>
-		</div>
-	);
+  // Reset layout
+  const resetLayout = () => {
+    const validItems = initialLayout.filter(
+      (i) =>
+        i.type === "header" ||
+        !i.entityId ||
+        exists(i.entityId),
+    );
+    setLayoutItems(validItems);
+    localStorage.removeItem(STORAGE_KEY);
+  };
+
+  // Remove item
+  const removeItem = (itemId: string) => {
+    setLayoutItems((prev) =>
+      prev.filter((i) => i.i !== itemId),
+    );
+  };
+
+  // Toggle edit mode
+  const toggleEditMode = () => {
+    if (isEditMode) {
+      saveLayout();
+    }
+    setIsEditMode(!isEditMode);
+  };
+
+  return (
+    <div className="min-h-screen bg-black text-white selection:bg-blue-500/30 pb-20">
+      {/* Background Aurora */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-blue-600/20 rounded-full blur-[128px] opacity-40 mix-blend-screen animate-pulse-slow" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-purple-600/20 rounded-full blur-[128px] opacity-40 mix-blend-screen animate-pulse-slow delay-75" />
+      </div>
+
+      <div className="relative z-10 p-6 lg:p-10 max-w-[1600px] mx-auto space-y-10">
+        {/* Header */}
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-4">
+          <div>
+            <h1 className="text-4xl lg:text-5xl font-thin tracking-tight text-white/90">
+              Aurora{" "}
+              <span className="font-bold bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent">
+                Dashboard
+              </span>
+            </h1>
+            <p className="text-white/40 mt-2 font-light tracking-wide">
+              Home Automation • iOS 26 Glassmorphism
+            </p>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setView("car")}
+              className="gap-2 text-white/60 hover:text-white hover:bg-white/10"
+            >
+              <CarFront className="w-4 h-4" />
+              <span className="hidden sm:inline">My Car</span>
+            </Button>
+
+            {isEditMode && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={resetLayout}
+                className="gap-2 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+              >
+                Reset
+              </Button>
+            )}
+
+            <Button
+              variant={isEditMode ? "default" : "ghost"}
+              size="sm"
+              onClick={toggleEditMode}
+              className={cn(
+                "gap-2 transition-all",
+                isEditMode
+                  ? "bg-blue-600 hover:bg-blue-700 text-white"
+                  : "text-white/60 hover:text-white hover:bg-white/10",
+              )}
+            >
+              {isEditMode ? (
+                <Check className="w-4 h-4" />
+              ) : (
+                <Pencil className="w-4 h-4" />
+              )}
+              {isEditMode ? "Done" : "Edit"}
+            </Button>
+
+            <div className="bg-white/5 backdrop-blur-xl rounded-full px-4 py-2 border border-white/10 flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+              <span className="text-sm text-white/60 font-medium">
+                System Online
+              </span>
+            </div>
+
+            <ThemeToggle />
+          </div>
+        </header>
+
+        {/* Edit Mode Banner */}
+        {isEditMode && (
+          <div className="bg-blue-500/10 backdrop-blur-md border border-blue-500/30 rounded-2xl p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+              <p className="text-white/80 text-sm">
+                <strong>Mode Édition Actif:</strong> Glissez les
+                cartes pour les réorganiser.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Grid Layout Container */}
+        <div
+          ref={containerRef as any}
+          className={cn(
+            "transition-all duration-500 rounded-[2rem]",
+            isEditMode && "bg-white/5 ring-1 ring-white/10 p-4",
+          )}
+          style={{
+            backgroundImage: isEditMode
+              ? "radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px)"
+              : "none",
+            backgroundSize: "24px 24px",
+          }}
+        >
+          <GridLayout
+            className="layout"
+            width={width}
+            layout={layout}
+            gridConfig={{
+              cols: 5,
+              rowHeight: 110,
+              margin: [20, 20],
+              containerPadding: [0, 0],
+            }}
+            dragConfig={{
+              enabled: isEditMode,
+              handle: ".drag-handle",
+            }}
+            resizeConfig={{
+              enabled: false,
+            }}
+            compactType="vertical"
+            preventCollision={false}
+            onLayoutChange={onLayoutChange as any}
+          >
+            {layoutItems.map((item) => (
+              <div
+                key={item.i}
+                className={cn(
+                  "transition-all duration-200",
+                  isEditMode &&
+                  "hover:ring-2 hover:ring-blue-400/50",
+                )}
+              >
+                <div className="h-full w-full relative">
+                  {isEditMode && (
+                    <div className="absolute inset-0 border-2 border-dashed border-white/20 rounded-[1.75rem] pointer-events-none z-40" />
+                  )}
+
+                  {isEditMode && (
+                    <div className="drag-handle absolute top-2 left-2 w-8 h-8 bg-white/10 backdrop-blur-md rounded-lg flex items-center justify-center cursor-grab active:cursor-grabbing z-50 hover:bg-white/20 transition-all">
+                      <svg
+                        className="w-4 h-4 text-white/60"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <circle
+                          cx="9"
+                          cy="7"
+                          r="1.5"
+                          fill="currentColor"
+                        />
+                        <circle
+                          cx="15"
+                          cy="7"
+                          r="1.5"
+                          fill="currentColor"
+                        />
+                        <circle
+                          cx="9"
+                          cy="12"
+                          r="1.5"
+                          fill="currentColor"
+                        />
+                        <circle
+                          cx="15"
+                          cy="12"
+                          r="1.5"
+                          fill="currentColor"
+                        />
+                        <circle
+                          cx="9"
+                          cy="17"
+                          r="1.5"
+                          fill="currentColor"
+                        />
+                        <circle
+                          cx="15"
+                          cy="17"
+                          r="1.5"
+                          fill="currentColor"
+                        />
+                      </svg>
+                    </div>
+                  )}
+
+                  <div
+                    className={cn(
+                      "h-full w-full",
+                      isEditMode && "pointer-events-none",
+                    )}
+                  >
+                    <CardRenderer
+                      item={item}
+                      isEditMode={isEditMode}
+                    />
+                  </div>
+
+                  {isEditMode && item.type !== "header" && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeItem(item.i);
+                      }}
+                      className="nodrag absolute -top-2 -right-2 w-7 h-7 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center shadow-lg z-50 transition-all active:scale-90"
+                    >
+                      <X className="w-4 h-4 text-white" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </GridLayout>
+        </div>
+
+        <AuroraFabCard
+          domain="script"
+          target="script.home_arrive"
+        />
+      </div>
+
+      <AnimatePresence>
+        {view === "car" && (
+          <AuroraCarView onClose={() => setView("dashboard")} />
+        )}
+      </AnimatePresence>
+
+      <style>{`
+        @keyframes pulse-slow {
+          0%, 100% { opacity: 0.4; }
+          50% { opacity: 0.6; }
+        }
+        .animate-pulse-slow {
+          animation: pulse-slow 8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        .delay-75 {
+          animation-delay: 2s;
+        }
+      `}</style>
+    </div>
+  );
 }

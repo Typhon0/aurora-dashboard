@@ -1,7 +1,7 @@
 import type React from "react";
 import { useId } from "react";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { cn } from "@/lib/utils";
+import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
+import { cn } from "../../lib/utils";
 
 export interface SegmentedOption<T extends string = string> {
   value: T;

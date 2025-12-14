@@ -4,20 +4,25 @@ import "./index.css";
 import { Dashboard } from "./views/Dashboard";
 import { DemoDashboard } from "./views/DemoDashboard";
 import { HassConnectFake } from "./demo/HassConnectFake";
+import { ThemeProvider } from "./components/providers/ThemeProvider";
 
-const isDemo = import.meta.env.VITE_DEMO === "1";
+// Safely access environment variables with fallbacks
+const env = typeof import.meta.env !== 'undefined' ? import.meta.env : {};
+const isDemo = true;
+const hassUrl = env.VITE_HA_URL || "";
+const hassToken = env.VITE_HA_TOKEN || "";
 
 function App() {
 	return (
-		<>
+		<ThemeProvider defaultTheme="dark" enableSystem>
 			{isDemo ? (
 				<HassConnectFake>
 					<DemoDashboard />
 				</HassConnectFake>
 			) : (
 				<HassConnect
-					hassUrl={import.meta.env.VITE_HA_URL}
-					hassToken={import.meta.env.VITE_HA_TOKEN}
+					hassUrl={hassUrl}
+					hassToken={hassToken}
 				>
 					<Dashboard />
 				</HassConnect>
@@ -35,7 +40,7 @@ function App() {
 					},
 				}}
 			/>
-		</>
+		</ThemeProvider>
 	);
 }
 

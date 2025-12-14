@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useCallback, useMemo } from "react";
-import { cn } from "@/lib/utils";
-import { computeSnapped } from "@/utils/dial";
+import { cn } from "../../lib/utils";
+import { computeSnapped } from "../../utils/dial";
 
 export interface ControlDialProps {
   value: number; // 0-100

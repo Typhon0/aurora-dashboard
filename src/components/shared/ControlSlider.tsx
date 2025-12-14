@@ -1,6 +1,6 @@
 import React from "react";
-import { Slider } from "@/components/ui/slider";
-import { cn } from "@/lib/utils";
+import { Slider } from "../ui/slider";
+import { cn } from "../../lib/utils";
 
 // Simplified Radix-based ControlSlider wrapper.
 // Features:

@@ -1,7 +1,7 @@
 // src/components/aurora/AuroraAreaCard.tsx
 import React from "react";
 import { useEntity, type EntityName } from "@hakit/core";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
 
 interface Props {
 	title: string;

@@ -7,14 +7,14 @@ import {
 	CommandEmpty,
 	CommandGroup,
 	CommandItem,
-} from "@/components/ui/command";
+} from "../ui/command";
 import {
 	Popover,
 	PopoverTrigger,
 	PopoverContent,
-} from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+} from "../ui/popover";
+import { Button } from "../ui/button";
+import { cn } from "../../lib/utils";
 import { Check, ChevronsUpDown, X } from "lucide-react";
 
 export interface MultiSelectOption<T extends string = string> {

@@ -4,11 +4,11 @@ import {
 	Popover,
 	PopoverTrigger,
 	PopoverContent,
-} from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+} from "../ui/popover";
+import { Button } from "../ui/button";
+import { Slider } from "../ui/slider";
+import { Input } from "../ui/input";
+import { cn } from "../../lib/utils";
 
 // Simple HSL-based color picker (hybrid: Popover + Sliders). Alternatives: react-colorful (heavier) or a canvas-based picker.
 

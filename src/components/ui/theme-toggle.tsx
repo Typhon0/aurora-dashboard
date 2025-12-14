@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { useTheme } from "next-themes";
 import { Sun, Moon, MonitorSmartphone } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { Button } from "./button";
+import { cn } from "../../lib/utils";
 
 // Cycles: dark -> light -> system
 const order: Array<"dark" | "light" | "system"> = ["dark", "light", "system"];

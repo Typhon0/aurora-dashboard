@@ -1,6 +1,6 @@
 import type React from "react";
-import { Switch } from "@/components/ui/switch";
-import { cn } from "@/lib/utils";
+import { Switch } from "../ui/switch";
+import { cn } from "../../lib/utils";
 
 export interface ControlSwitchProps {
 	checked?: boolean;

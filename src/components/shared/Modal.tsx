@@ -7,7 +7,7 @@ import {
 	DialogTitle,
 	DialogDescription,
 	DialogFooter,
-} from "@/components/ui/dialog";
+} from "../ui/dialog";
 
 export interface ModalProps {
 	trigger: ReactNode;

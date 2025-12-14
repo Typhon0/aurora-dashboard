@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { cn } from "@/utils/cn";
+import { cn } from "../../utils/cn";
 import { Power, PowerOff } from "lucide-react";
 
 export interface ControlToggleProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "onChange"> {

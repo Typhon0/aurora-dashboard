@@ -3,12 +3,12 @@ import { useEntity, useService, type EntityName } from "@hakit/core";
 import {
 	getLightCapabilities,
 	type HAEntityLike,
-} from "@/lib/lightCapabilities";
-import { Slider } from "@/components/ui/slider";
-import { ControlDial } from "@/components/shared/ControlDial";
-import { Button } from "@/components/ui/button";
-import { ControlColorPicker } from "@/components/shared";
-import { cn } from "@/lib/utils";
+} from "../../lib/lightCapabilities";
+import { Slider } from "../ui/slider";
+import { ControlDial } from "./ControlDial";
+import { Button } from "../ui/button";
+import { ControlColorPicker } from "./index";
+import { cn } from "../../lib/utils";
 import { Palette, Sparkles } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 

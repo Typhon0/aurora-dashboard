@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo, type ReactNode } from "react";
-import { HassContext, useStore } from "@hakit/core";
+import React, { type ReactNode } from "react";
+import { useHass } from "@hakit/core";
 import type {
 	HassEntities,
 	HassEntity,
@@ -106,9 +106,9 @@ class MockConnection implements Partial<Connection> {
 // Initialize store once (outside component) so first render already has data
 let initialized = false;
 if (!initialized) {
-	const state = useStore.getState();
+	const state = useHass.getState();
 	const entities = buildEntities();
-	useStore.setState({
+	useHass.setState({
 		entities: { ...state.entities, ...entities },
 		config: fakeConfig,
 		connection: new MockConnection() as unknown as Connection,
@@ -126,7 +126,7 @@ function applyService(
 ) {
 	if (!target) return;
 	const id = Array.isArray(target) ? target[0] : target;
-	const s = useStore.getState();
+	const s = useHass.getState();
 	const ent = s.entities[id];
 	if (!ent) return;
 	const now = new Date().toISOString();
@@ -190,7 +190,7 @@ function applyService(
 		default:
 			break;
 	}
-	useStore.setState((prev) => ({
+	useHass.setState((prev) => ({
 		...prev,
 		entities: {
 			...prev.entities,
@@ -209,7 +209,7 @@ export const HassConnectFake: React.FC<HassConnectFakeProps> = ({
 	children,
 	fallback,
 }) => {
-	const ready = useStore((s) => s.ready);
+	const ready = useHass((s) => s.ready);
 	// Demo ticking updates (temperature, time, pressure)
 	useDemoEntityTicker({
 		temperatureTickMs: 2000,
@@ -217,55 +217,7 @@ export const HassConnectFake: React.FC<HassConnectFakeProps> = ({
 		pressureTickMs: 2000,
 	});
 
-	// Provide a permissive typed wrapper compatible enough for consumers; we cast to expected complex signature.
-	const callService = useCallback(
-		(args: {
-			domain: string;
-			service: string;
-			target?: string | string[];
-			serviceData?: Record<string, unknown>;
-		}): Promise<unknown> => {
-			applyService(args.domain, args.service, args.target, args.serviceData);
-			return Promise.resolve({}); // mimic async path returning a response
-		},
-		[],
-	);
-
-	const callApi = useCallback(
-		async <T,>(): Promise<{ data: T; status: "success" }> => ({
-			data: {} as T,
-			status: "success",
-		}),
-		[],
-	);
-
-	const contextValue = useMemo(
-		() => ({
-			useStore,
-			logout: () => {},
-			addRoute: () => void 0,
-			getRoute: () => null,
-			getStates: async () => Object.values(useStore.getState().entities),
-			getServices: async () => null,
-			getConfig: async () => fakeConfig,
-			getUser: async () => null,
-			callService: callService as unknown,
-			callApi: callApi as unknown,
-			getAllEntities: () => useStore.getState().entities,
-			joinHassUrl: (p: string) => p,
-			windowContext: window,
-		}),
-		[callService, callApi],
-	);
-
-	// Infer the internal context prop type so we can cast without using 'any'
-	type LooseHassContext = typeof HassContext extends React.Context<infer P>
-		? P
-		: never;
-
-	return (
-		<HassContext.Provider value={contextValue as unknown as LooseHassContext}>
-			{ready ? children : (fallback ?? null)}
-		</HassContext.Provider>
-	);
+	// In v6, the zustand store is populated at module load time.
+	// No context provider needed - hooks like useEntity/useService read from useHass directly.
+	return <>{ready ? children : (fallback ?? null)}</>;
 };

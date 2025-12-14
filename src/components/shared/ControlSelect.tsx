@@ -8,8 +8,8 @@ import {
   SelectItem,
   SelectGroup,
   SelectLabel as PrimitiveLabel,
-} from "@/components/ui/select";
-import { cn } from "@/lib/utils";
+} from "../ui/select";
+import { cn } from "../../lib/utils";
 
 // ControlSelect rationale / alternatives:
 // - Uses Radix Select via shadcn for accessibility & keyboard support.

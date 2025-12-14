@@ -1,7 +1,7 @@
 // src/components/aurora/AuroraFabCard.tsx
 import React, { useCallback } from "react";
 import { useService } from "@hakit/core";
-import { Button } from "@/components/ui/button";
+import { Button } from "../ui/button";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 
@@ -29,9 +29,9 @@ export function AuroraFabCard({ domain, target, className }: Props) {
 		<div className={`fixed bottom-6 right-6 ${className || ""}`}>
 			<Button
 				onClick={run}
-				className="rounded-full w-14 h-14 bg-blue-500/30 border border-blue-500/40 hover:bg-blue-500/40"
+				className="rounded-full w-16 h-16 bg-blue-500/20 backdrop-blur-xl border border-white/20 hover:bg-blue-500/30 shadow-[0_0_30px_rgba(59,130,246,0.3)] transition-all duration-300 hover:scale-110"
 			>
-				<Plus className="w-6 h-6 text-blue-200" />
+				<Plus className="w-8 h-8 text-white" />
 			</Button>
 		</div>
 	);
